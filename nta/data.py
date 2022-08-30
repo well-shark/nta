@@ -3,7 +3,7 @@
 from enum import Enum
 
 # 定义枚举
-class FEATURE_TYPE(Enum):
+class FeatureType(Enum):
     Payload_L7 = 'payload7' # Raw Payloads (application layer data only)
     Payload_L4 = 'payload4' # Raw Payloads (with transport layer packet headers)
     DPLS = 'dpls' # Directed Packet Length Sequence，带方向的包长度序列
@@ -47,3 +47,6 @@ class FEATURE_TYPE(Enum):
     PDSwPL20 = 'pdswpl20' # Packet Direction Sequence with 20% packet loss
     PDSwPL30 = 'pdswpl30' # Packet Direction Sequence with 30% packet loss
     PDSwPL40 = 'pdswpl40' # Packet Direction Sequence with 40% packet loss
+
+def get_all_feature_type():
+    return [ft.value for ft in FeatureType]
