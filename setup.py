@@ -1,7 +1,8 @@
 # Modify from https://github.com/navdeep-G/setup.py/blob/master/setup.py
 import os
 import re
-from setuptools import setup, find_packages
+import sys
+from setuptools import setup, find_packages, Command
 
 __path__ = os.path.abspath(os.path.dirname(__file__))
 
@@ -35,6 +36,53 @@ def read_version():
 
 __version__ = read_version()
 
+# brought from https://github.com/kennethreitz/setup.py
+class DeployCommand(Command):
+    description = 'Build and deploy the package to PyPI.'
+    user_options = []
+
+    def initialize_options(self): pass
+    def finalize_options(self): pass
+
+    @staticmethod
+    def status(s):
+        print(s)
+
+    def run(self):
+        import twine  # we require twine locally
+
+        assert 'dev' not in __version__, (
+            "Only non-devel versions are allowed. "
+            "__version__ == {}".format(__version__))
+
+        with os.popen("git status --short") as fp:
+            git_status = fp.read().strip()
+            if git_status:
+                print("Error: git repository is not clean.\n")
+                os.system("git status --short")
+                sys.exit(1)
+
+        try:
+            from shutil import rmtree
+            self.status('Removing previous builds ...')
+            rmtree(os.path.join(__path__, 'dist'))
+        except OSError:
+            pass
+
+        self.status('Building Source and Wheel (universal) distribution ...')
+        os.system('{0} setup.py sdist'.format(sys.executable))
+
+        self.status('Uploading the package to PyPI via Twine ...')
+        ret = os.system('twine upload dist/*')
+        if ret != 0:
+            sys.exit(ret)
+
+        # self.status('Creating git tags ...')
+        # os.system('git tag v{0}'.format(__version__))
+        # os.system('git tag --list')
+        sys.exit()
+
+
 setup(
     name=NAME,
     version=read_version(),
@@ -44,6 +92,7 @@ setup(
     description=DESCRIPTION,
     long_description=read_readme(),
     long_description_content_type="text/markdown",
+    keywords='network traffic analysis',
     license="MIT",
     url=URL,
     packages=find_packages(),
@@ -55,4 +104,10 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
+    entry_points= {
+        'console_scripts': ['nta=nta.cli:main'],
+    },
+    cmdclass={
+        'deploy': DeployCommand,
+    },
 )
