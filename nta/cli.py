@@ -1,7 +1,7 @@
 import sys
 import argparse
 
-from data import get_all_feature_type
+from .data import get_all_feature_type
 
 
 def main(*argv):
